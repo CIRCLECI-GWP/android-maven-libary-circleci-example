@@ -8,18 +8,20 @@ See this [Tutorial](https://medium.com/@ome450901/publish-an-android-library-by-
 
 For more details check out the [documentation](https://docs.jitpack.io/android/)
 
-https://jitpack.io/#jitpack/android-example
+<https://jitpack.io/#jitpack/android-example>
 
 Add it to your settings.gradle with:
+
 ```gradle
-	dependencyResolutionManagement {
-		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-		repositories {
-			mavenCentral()
-			maven { url 'https://jitpack.io' }
-		}
-	}
+ dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+   mavenCentral()
+   maven { url 'https://jitpack.io' }
+  }
+ }
 ```
+
 and:
 
 ```gradle
@@ -31,13 +33,14 @@ dependencies {
 ## Multiple build variants
 
 If your library uses multiple flavours then see this example:
-https://github.com/jitpack-io/android-jitpack-library-example
+<https://github.com/jitpack-io/android-jitpack-library-example>
 
 ## Adding the maven plugin
 
 To enable installing into local maven repository and JitPack you need to add the [maven-publish](https://developer.android.com/studio/build/maven-publish-plugin) plugin:
 
 Then add the publishing section to your library build.gradle:
+
 ```gradle
 publishing {
   publications {
@@ -54,14 +57,16 @@ publishing {
 }
 ```
 
-After these changes you should be able to run:
+After these changes you should be able to run the following command:
 
-    ./gradlew publishToMavenLocal
-    
-from the root of your project. 
+```bash
+./gradlew publishToMavenLocal
+```
+
+
 If `publishToMavenLocal` works and you have added a GitHub release it should work on jitpack.io
 
-## Adding a sample app 
+## Adding a sample app
 
 If you add a sample app to the same repo then your app needs to have a dependency on the library. To do this in your app/build.gradle add:
 
