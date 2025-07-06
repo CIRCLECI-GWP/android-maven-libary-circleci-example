@@ -12,8 +12,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Assemble library
-          command: ./gradlew clean
+          name: Build and test library
+          command: ./gradlew clean assemble test
 
   deploy-to-sonatype:
     executor:
@@ -52,14 +52,8 @@ workflows:
     when:
       not: << pipeline.parameters.run-schedule >>
     jobs:
-      - android/run_ui_tests:
+      - build-library:
           name: build-and-test
-          executor:
-            name: android/android_machine
-            resource_class: large
-            tag: 2024.11.1
-          system_image: system-images;android-33;google_apis;x86_64
-          test_command: ./gradlew assemble sample:connectedDebugAndroidTest
           filters:
             tags:
               only: /^[0-9]+.*/
@@ -83,14 +77,8 @@ workflows:
   nightly-snapshot:
     when: << pipeline.parameters.run-schedule >>
     jobs:
-      - android/run_ui_tests:
+      - build-library:
           name: build-and-test
-          executor:
-            name: android/android_machine
-            resource_class: large
-            tag: 2024.11.1
-          system_image: system-images;android-33;google_apis;x86_64
-          test_command: ./gradlew assemble sample:connectedDebugAndroidTest
       - deploy-to-sonatype:
           name: Deploy Snapshot to Sonatype
           requires:
