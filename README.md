@@ -63,7 +63,6 @@ After these changes you should be able to run the following command:
 ./gradlew publishToMavenLocal
 ```
 
-
 If `publishToMavenLocal` works and you have added a GitHub release it should work on jitpack.io
 
 ## Adding a sample app
