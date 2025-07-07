@@ -41,6 +41,10 @@ jobs:
       - run:
           name: Release
           command: ./gradlew jreleaserFullRelease
+      - store_artifacts:
+          path: android-library-example/build/jreleaser/trace.log
+          destination: jreleaser-trace.log
+          when: always
 
 parameters:
   run-schedule:
