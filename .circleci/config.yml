@@ -23,24 +23,24 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Define ORG_GRADLE_PROJECT_LIBRARY_VERSION Environment Variable at Runtime
+          name: Define LIBRARY_VERSION Environment Variable at Runtime
           command: |
             if [ $CIRCLE_TAG ]
               then
-                echo 'export ORG_GRADLE_PROJECT_LIBRARY_VERSION=$CIRCLE_TAG' >> $BASH_ENV
+                echo 'export LIBRARY_VERSION=$CIRCLE_TAG' >> $BASH_ENV
               else
-                echo "export ORG_GRADLE_PROJECT_LIBRARY_VERSION=`git tag | tail -1`-SNAPSHOT" >> $BASH_ENV
+                echo "export LIBRARY_VERSION=`git tag | tail -1`-SNAPSHOT" >> $BASH_ENV
             fi
             source $BASH_ENV
       - run:
-          name: Inject Maven signing key
-          command: |
-            echo $GPG_SIGNING_KEY \
-              | awk 'NR == 1 { print "SIGNING_KEY=" } 1' ORS='\\n' \
-              >> gradle.properties
+          name: Build library
+          command: ./gradlew assemble
       - run:
-          name: Publish to Maven
-          command: ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository
+          name: Build and publish
+          command: ./gradlew jreleaserConfig build publish
+      - run:
+          name: Release
+          command: ./gradlew jreleaserFullRelease
 
 parameters:
   run-schedule:
