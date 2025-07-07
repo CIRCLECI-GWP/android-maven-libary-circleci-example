@@ -1,8 +1,22 @@
+import java.util.Base64
+
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
+    id 'signing'
+    id 'org.jreleaser' version '1.19.0'
 }
+
+def artifactId = 'android-circleci-library'
+def ossrhUsername = findProperty('OSSRH_USERNAME')
+def ossrhPassword = findProperty('OSSRH_PASSWORD')
+def signingKey    = findProperty("SIGNING_KEY") ?: System.getenv("SIGNING_KEY")
+def signingPass   = findProperty("SIGNING_KEY_PWD") ?: System.getenv("SIGNING_KEY_PWD")
+
+
+group = "io.jitpack"
+version = "0.3.0"
 
 android {
     namespace 'io.jitpack.library'
@@ -10,45 +24,148 @@ android {
 
     defaultConfig {
         minSdk 24
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        versionCode 1
+        versionName version
     }
-
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+        release { minifyEnabled false }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = '11'
-    }
+    kotlinOptions { jvmTarget = '11' }
 }
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+task javadoc(type: Javadoc) {
+    configurations.implementation.setCanBeResolved(true)
+    source = android.sourceSets.main.java.srcDirs
+    classpath += files(android.getBootClasspath())
+    destinationDir = file("$buildDir/outputs/javadoc/")
+    exclude '**/R.java'
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
 }
 
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = 'io.jitpack'
-            artifactId = 'library'
-            version = '1.0'
+            groupId = group
+            artifactId = artifactId
+            version = version
 
-            afterEvaluate {
-                from components.release
+            artifact("$buildDir/outputs/aar/${project.name}-release.aar") {
+                builtBy tasks.getByName('assemble')
+            }
+            artifact androidSourcesJar
+            artifact javadocJar
+
+            pom {
+                name = artifactId
+                description = 'Android CircleCI Library Example'
+                url = 'https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url  = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id    = 'vivekmaskara'
+                        name  = 'Vivek Maskara'
+                        email = 'your.email@example.com'
+                    }
+                }
+                scm {
+                    connection          = 'scm:git:github.com/CIRCLECI-GWP/android-maven-libary-circleci-example.git'
+                    developerConnection = 'scm:git:ssh://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example.git'
+                    url                 = 'https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example'
+                }
             }
         }
     }
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir('staging-deploy'))
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(signingKey, signingPass)
+    sign publishing.publications
+}
+
+def passphraseBase64 = findProperty('JRELEASER_GPG_PASSPHRASE_BASE64') ?: System.getenv('JRELEASER_GPG_PASSPHRASE_BASE64')
+def decodedPassphrase = new String(Base64.decoder.decode(passphraseBase64 ?: ""), "UTF-8")
+
+jreleaser {
+    gitRootSearch = true
+
+    project {
+        name         = artifactId
+        description  = 'Android CircleCI Library Example'
+        website      = 'https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example'
+        docsUrl      = 'https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example#readme'
+        license      = 'MIT'
+        authors      = ['Vivek Maskara']
+    }
+
+    distributions {
+        androidLib {
+            distributionType = 'flat'
+            artifact {
+                path = "$buildDir/outputs/aar/${project.name}-release.aar"
+            }
+        }
+    }
+
+    signing {
+        active    = 'ALWAYS'
+        armored   = true
+        mode      = 'MEMORY'
+        publicKey = findProperty('JRELEASER_GPG_PUBLIC_KEY') ?: System.getenv('JRELEASER_GPG_PUBLIC_KEY')
+        secretKey = findProperty('JRELEASER_GPG_SECRET_KEY') ?: System.getenv('JRELEASER_GPG_SECRET_KEY')
+        passphrase= decodedPassphrase
+    }
+
+    deploy {
+        maven {
+            mavenCentral {
+            // Named deployer instance; replace "app" with any identifier, e.g., "release"
+            app {
+                active   = 'ALWAYS'
+                url      = 'https://central.sonatype.com/api/v1/publisher'
+                username = findProperty('JRELEASER_MAVENCENTRAL_APP_USERNAME') ?: System.getenv('JRELEASER_MAVENCENTRAL_APP_USERNAME')
+                password = findProperty('JRELEASER_MAVENCENTRAL_APP_PASSWORD') ?: System.getenv('JRELEASER_MAVENCENTRAL_APP_PASSWORD')
+                // No stagingRepository needed for publisher API workflow
+            }
+            }
+        }
+    }
+
+
+    release {
+        github {
+            enabled     = false
+            skipRelease = true
+        }
+    }
+}
+
+tasks.named('jreleaserFullRelease') {
+    dependsOn 'publish'
 }
