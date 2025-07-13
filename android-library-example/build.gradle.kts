@@ -117,7 +117,10 @@ jreleaser {
         active = Active.ALWAYS
         armored = true
         verify = true
+        secretKey = System.getenv("JRELEASER_GPG_SECRET_KEY")
+        password = System.getenv("JRELEASER_GPG_PASSPHRASE")
     }
+
     release {
         github {
             skipTag = true
