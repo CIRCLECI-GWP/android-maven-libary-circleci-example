@@ -1,4 +1,5 @@
 import org.jreleaser.model.Active
+import org.jreleaser.model.Signing
 
 plugins {
     alias(libs.plugins.android.library)
@@ -117,10 +118,12 @@ jreleaser {
         active = Active.ALWAYS
         armored = true
         verify = true
-        secretKey = System.getenv("JRELEASER_GPG_SECRET_KEY")
-        password = System.getenv("JRELEASER_GPG_PASSPHRASE")
-    }
+        mode = Signing.Mode.MEMORY
 
+        passphrase = System.getenv("JRELEASER_GPG_PASSPHRASE")
+        publicKey = System.getenv("JRELEASER_GPG_PUBLIC_KEY")
+        secretKey = System.getenv("JRELEASER_GPG_SECRET_KEY")
+    }
     release {
         github {
             skipTag = true
