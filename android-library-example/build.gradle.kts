@@ -66,15 +66,15 @@ publishing {
             pom {
                 name.set(project.properties["POM_NAME"].toString())
                 description.set(project.properties["POM_DESCRIPTION"].toString())
-                url.set("https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example")
+                url.set("https://github.com/CIRCLECI-GWP/android-maven-library-circleci-example")
                 issueManagement {
-                    url.set("https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example/issues")
+                    url.set("https://github.com/CIRCLECI-GWP/android-maven-library-circleci-example/issues")
                 }
 
                 scm {
-                    url.set("https://github.com/CIRCLECI-GWP/android-maven-libary-circleci-example")
-                    connection.set("scm:git@github.com:CIRCLECI-GWP/android-maven-libary-circleci-example.git")
-                    developerConnection.set("scm:git@github.com:CIRCLECI-GWP/android-maven-libary-circleci-example.git")
+                    url.set("https://github.com/CIRCLECI-GWP/android-maven-library-circleci-example")
+                    connection.set("scm:git@github.com:CIRCLECI-GWP/android-maven-library-circleci-example.git")
+                    developerConnection.set("scm:git@github.com:CIRCLECI-GWP/android-maven-library-circleci-example.git")
                 }
 
                 licenses {
