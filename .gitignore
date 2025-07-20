@@ -26,3 +26,9 @@ reports
 
 secret.env
 .kotlin
+
+# GPG Keys (keep encrypted versions, ignore unencrypted)
+private.key.asc
+public.key.asc
+private.pgp
+public.pgp

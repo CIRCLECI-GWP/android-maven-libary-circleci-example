@@ -33,6 +33,17 @@ jobs:
             fi
             source $BASH_ENV
       - run:
+          name: Decrypt GPG keys
+          command: |
+            # Decrypt the private key
+            openssl aes-256-cbc -d -a -pbkdf2 -in private.key.asc.enc -out private.key.asc -k $GPG_ENCRYPTION_PASSWORD
+            # Decrypt the public key
+            openssl aes-256-cbc -d -a -pbkdf2 -in public.key.asc.enc -out public.key.asc -k $GPG_ENCRYPTION_PASSWORD
+            # Set the keys as environment variables for JReleaser
+            echo 'export JRELEASER_GPG_SECRET_KEY="$(cat private.key.asc)"' >> $BASH_ENV
+            echo 'export JRELEASER_GPG_PUBLIC_KEY="$(cat public.key.asc)"' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
           name: Build library
           command: ./gradlew assemble
       - run:
